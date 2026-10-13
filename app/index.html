@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project Pulse</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1>Project Pulse</h1>
+    <p class="page-header__subtitle">A dashboard for tracking project health, priority, and momentum.</p>
+  </header>
+
+  <section class="dashboard__summary" aria-label="Project status summary">
+    <div class="summary-item summary-item--on-track">
+      <span class="summary-item__count" id="summary-on-track">0</span>
+      <span class="summary-item__label">On track</span>
+    </div>
+    <div class="summary-item summary-item--at-risk">
+      <span class="summary-item__count" id="summary-at-risk">0</span>
+      <span class="summary-item__label">At risk</span>
+    </div>
+    <div class="summary-item summary-item--off-track">
+      <span class="summary-item__count" id="summary-off-track">0</span>
+      <span class="summary-item__label">Off track</span>
+    </div>
+  </section>
+
+  <main>
+    <div id="state-message" class="state-message" aria-live="polite">Loading project data…</div>
+    <ul id="dashboard" class="dashboard" aria-label="Projects"></ul>
+  </main>
+
+  <script>
+    const statusLabels = {
+      "on-track": "On track",
+      "at-risk": "At risk",
+      "off-track": "Off track"
+    };
+
+    const priorityLabels = {
+      high: "High priority",
+      medium: "Medium priority",
+      low: "Low priority"
+    };
+
+    const knownStatuses = new Set(Object.keys(statusLabels));
+    const knownPriorities = new Set(Object.keys(priorityLabels));
+    const dashboard = document.getElementById("dashboard");
+    const stateMessage = document.getElementById("state-message");
+
+    function setStateMessage(message, isError) {
+      stateMessage.textContent = message;
+      stateMessage.hidden = false;
+      stateMessage.classList.toggle("state-message--error", isError);
+
+      if (isError) {
+        stateMessage.setAttribute("role", "alert");
+      } else {
+        stateMessage.removeAttribute("role");
+      }
+    }
+
+    function clearStateMessage() {
+      stateMessage.textContent = "";
+      stateMessage.hidden = true;
+      stateMessage.classList.remove("state-message--error");
+      stateMessage.removeAttribute("role");
+    }
+
+    function clampProgress(value) {
+      const numberValue = Number(value);
+
+      if (!Number.isFinite(numberValue)) {
+        return 0;
+      }
+
+      return Math.min(100, Math.max(0, Math.round(numberValue)));
+    }
+
+    function getStatus(project) {
+      return knownStatuses.has(project.status) ? project.status : "unknown";
+    }
+
+    function getPriority(project) {
+      return knownPriorities.has(project.priority) ? project.priority : "low";
+    }
+
+    function humanizeValue(value) {
+      if (typeof value !== "string" || value.trim() === "") {
+        return "Unknown";
+      }
+
+      return value
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+
+    function createTextElement(tagName, className, text) {
+      const element = document.createElement(tagName);
+      element.className = className;
+      element.textContent = text;
+      return element;
+    }
+
+    function createProjectCard(project) {
+      const status = getStatus(project);
+      const priority = getPriority(project);
+      const progress = clampProgress(project.progress);
+
+      const listItem = document.createElement("li");
+      const article = document.createElement("article");
+      article.classList.add("project-card", `project-card--${status}`);
+
+      const header = document.createElement("div");
+      header.className = "project-card__header";
+
+      const title = createTextElement("h2", "project-card__title", project.name || "Untitled project");
+
+      const statusBadge = createTextElement(
+        "span",
+        `status-badge status-badge--${status}`,
+        statusLabels[status] || humanizeValue(project.status)
+      );
+
+      header.append(title, statusBadge);
+
+      const owner = createTextElement("p", "project-card__owner", `Owner: ${project.owner || "Unassigned"}`);
+
+      const meta = createTextElement("p", "project-card__meta", `Due: ${project.dueDate || "Not scheduled"}`);
+
+      const priorityElement = createTextElement(
+        "span",
+        `priority priority--${priority}`,
+        priorityLabels[priority]
+      );
+
+      const activity = document.createElement("div");
+      activity.className = "project-card__activity";
+
+      const activityLabel = createTextElement("span", "project-card__label", "Recent activity");
+      const activityText = createTextElement(
+        "p",
+        "project-card__activity-text",
+        project.recentActivity || "No recent activity reported."
+      );
+
+      activity.append(activityLabel, activityText);
+
+      const progressLabel = createTextElement("p", "progress__label", `${progress}% complete`);
+
+      const progressElement = document.createElement("div");
+      progressElement.className = "progress";
+      progressElement.setAttribute("role", "progressbar");
+      progressElement.setAttribute("aria-label", `${project.name || "Project"} progress`);
+      progressElement.setAttribute("aria-valuemin", "0");
+      progressElement.setAttribute("aria-valuemax", "100");
+      progressElement.setAttribute("aria-valuenow", String(progress));
+
+      const progressBar = document.createElement("div");
+      progressBar.className = "progress__bar";
+      progressBar.style.width = `${progress}%`;
+      progressElement.append(progressBar);
+
+      article.append(header, owner, meta, priorityElement, activity, progressLabel, progressElement);
+      listItem.append(article);
+
+      return listItem;
+    }
+
+    function updateSummary(projects) {
+      const counts = {
+        "on-track": 0,
+        "at-risk": 0,
+        "off-track": 0
+      };
+
+      projects.forEach((project) => {
+        if (knownStatuses.has(project.status)) {
+          counts[project.status] += 1;
+        }
+      });
+
+      document.getElementById("summary-on-track").textContent = String(counts["on-track"]);
+      document.getElementById("summary-at-risk").textContent = String(counts["at-risk"]);
+      document.getElementById("summary-off-track").textContent = String(counts["off-track"]);
+    }
+
+    function renderProjects(projects) {
+      dashboard.replaceChildren();
+      updateSummary(projects);
+
+      if (projects.length === 0) {
+        setStateMessage("No projects are available yet.", false);
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+
+      projects.forEach((project) => {
+        fragment.append(createProjectCard(project));
+      });
+
+      dashboard.append(fragment);
+      clearStateMessage();
+    }
+
+    async function loadProjects() {
+      setStateMessage("Loading project data…", false);
+
+      try {
+        const response = await fetch('project-data.json');
+
+        if (!response.ok) {
+          throw new Error(`Project data request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        const projects = Array.isArray(data.projects) ? data.projects : [];
+        renderProjects(projects);
+      } catch (error) {
+        dashboard.replaceChildren();
+        updateSummary([]);
+        setStateMessage("Unable to load project data. Start the dashboard from a local web server and try again.", true);
+      }
+    }
+
+    loadProjects();
+  </script>
+</body>
+</html>

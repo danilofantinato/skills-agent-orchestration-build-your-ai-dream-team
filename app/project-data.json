@@ -1,0 +1,75 @@
+{
+  "updated": "2026-10-13T14:41:46.624Z",
+  "projects": [
+    {
+      "id": "aurora-portal",
+      "name": "Aurora Client Portal",
+      "owner": "Mina Patel",
+      "status": "on-track",
+      "recentActivity": "Design review completed with no blocking issues.",
+      "priority": "high",
+      "progress": 68,
+      "dueDate": "2026-11-20"
+    },
+    {
+      "id": "atlas-migration",
+      "name": "Atlas Data Migration",
+      "owner": "Jon Bell",
+      "status": "at-risk",
+      "recentActivity": "Data mapping found several fields needing clarification.",
+      "priority": "high",
+      "progress": 42,
+      "dueDate": "2026-10-30"
+    },
+    {
+      "id": "greenhouse-insights",
+      "name": "Greenhouse Insights",
+      "owner": "Lena Ortiz",
+      "status": "on-track",
+      "recentActivity": "Prototype dashboard was shared with pilot users.",
+      "priority": "medium",
+      "progress": 55,
+      "dueDate": "2026-12-05"
+    },
+    {
+      "id": "beacon-mobile",
+      "name": "Beacon Mobile Refresh",
+      "owner": "Theo Morgan",
+      "status": "off-track",
+      "recentActivity": "Release candidate failed accessibility checks.",
+      "priority": "high",
+      "progress": 37,
+      "dueDate": "2026-10-22"
+    },
+    {
+      "id": "cobalt-api",
+      "name": "Cobalt API Cleanup",
+      "owner": "Priya Nair",
+      "status": "at-risk",
+      "recentActivity": "Deprecated endpoint inventory is still incomplete.",
+      "priority": "medium",
+      "progress": 24,
+      "dueDate": "2026-11-12"
+    },
+    {
+      "id": "ember-docs",
+      "name": "Ember Knowledge Base",
+      "owner": "Sam Rivera",
+      "status": "on-track",
+      "recentActivity": "First editorial pass finished ahead of schedule.",
+      "priority": "low",
+      "progress": 81,
+      "dueDate": "2026-12-18"
+    },
+    {
+      "id": "northstar-archive",
+      "name": "Northstar Archive",
+      "owner": "Ari Chen",
+      "status": "off-track",
+      "recentActivity": "Vendor export remains blocked by contract approval.",
+      "priority": "low",
+      "progress": 0,
+      "dueDate": "2026-11-01"
+    }
+  ]
+}
